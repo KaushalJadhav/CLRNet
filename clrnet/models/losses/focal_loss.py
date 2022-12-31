@@ -4,11 +4,12 @@ from typing import Optional
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import pytorch_lightning as pl
 
 # Source: https://github.com/kornia/kornia/blob/f4f70fefb63287f72bc80cd96df9c061b1cb60dd/kornia/losses/focal.py
 
 
-class SoftmaxFocalLoss(nn.Module):
+class SoftmaxFocalLoss(pl.LightningModule):
     def __init__(self, gamma, ignore_lb=255, *args, **kwargs):
         super(SoftmaxFocalLoss, self).__init__()
         self.gamma = gamma
@@ -137,7 +138,7 @@ def focal_loss(input: torch.Tensor,
     return loss
 
 
-class FocalLoss(nn.Module):
+class FocalLoss(pl.LightningModule):
     r"""Criterion that computes Focal loss.
 
     According to [1], the Focal loss is computed as follows:

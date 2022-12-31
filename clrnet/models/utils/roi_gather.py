@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from mmcv.cnn import ConvModule
+import pytorch_lightning as pl
 
 
 def LinearModule(hidden_dim):
@@ -10,7 +11,7 @@ def LinearModule(hidden_dim):
          nn.ReLU(inplace=True)])
 
 
-class FeatureResize(nn.Module):
+class FeatureResize(pl.LightningModule):
     def __init__(self, size=(10, 25)):
         super(FeatureResize, self).__init__()
         self.size = size
@@ -20,7 +21,7 @@ class FeatureResize(nn.Module):
         return x.flatten(2)
 
 
-class ROIGather(nn.Module):
+class ROIGather(pl.LightningModule):
     '''
     ROIGather module for gather global information
     Args: 

@@ -6,6 +6,7 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 from mmcv.cnn import ConvModule
+import pytorch_lightning as pl
 
 from clrnet.utils.lane import Lane
 from clrnet.models.losses.focal_loss import FocalLoss
@@ -20,7 +21,7 @@ from ..registry import HEADS
 
 
 @HEADS.register_module
-class CLRHead(nn.Module):
+class CLRHead(pl.LightningModule):
     def __init__(self,
                  num_points=72,
                  prior_feat_channels=64,

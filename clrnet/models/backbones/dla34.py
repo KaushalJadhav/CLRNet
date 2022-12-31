@@ -13,6 +13,7 @@ from torch import nn
 import torch.nn.functional as F
 import torch.utils.model_zoo as model_zoo
 from clrnet.models.registry import BACKBONES
+import pytorch_lightning as pl
 
 BN_MOMENTUM = 0.1
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ def conv3x3(in_planes, out_planes, stride=1):
                      bias=False)
 
 
-class BasicBlock(nn.Module):
+class BasicBlock(pl.LightningModule):
     def __init__(self, inplanes, planes, stride=1, dilation=1):
         super(BasicBlock, self).__init__()
         self.conv1 = nn.Conv2d(inplanes,
@@ -72,7 +73,7 @@ class BasicBlock(nn.Module):
         return out
 
 
-class Bottleneck(nn.Module):
+class Bottleneck(pl.LightningModule):
     expansion = 2
 
     def __init__(self, inplanes, planes, stride=1, dilation=1):
@@ -121,7 +122,7 @@ class Bottleneck(nn.Module):
         return out
 
 
-class BottleneckX(nn.Module):
+class BottleneckX(pl.LightningModule):
     expansion = 2
     cardinality = 32
 
@@ -174,7 +175,7 @@ class BottleneckX(nn.Module):
         return out
 
 
-class Root(nn.Module):
+class Root(pl.LightningModule):
     def __init__(self, in_channels, out_channels, kernel_size, residual):
         super(Root, self).__init__()
         self.conv = nn.Conv2d(in_channels,
@@ -198,7 +199,7 @@ class Root(nn.Module):
         return x
 
 
-class Tree(nn.Module):
+class Tree(pl.LightningModule):
     def __init__(self,
                  levels,
                  block,
@@ -277,7 +278,7 @@ class Tree(nn.Module):
         return x
 
 
-class DLA(nn.Module):
+class DLA(pl.LightningModule):
     def __init__(self,
                  levels,
                  channels,
@@ -412,7 +413,7 @@ def dla34(pretrained=True, levels=None, in_channels=None, **kwargs):  # DLA-34
 
 
 @BACKBONES.register_module
-class DLAWrapper(nn.Module):
+class DLAWrapper(pl.LightningModule):
     def __init__(self,
                  dla='dla34',
                  pretrained=True,
@@ -432,7 +433,7 @@ class DLAWrapper(nn.Module):
         return x
 
 
-class Identity(nn.Module):
+class Identity(pl.LightningModule):
     def __init__(self):
         super(Identity, self).__init__()
 

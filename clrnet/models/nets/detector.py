@@ -1,12 +1,13 @@
 import torch.nn as nn
 import torch
+import pytorch_lightning as pl
 
 from clrnet.models.registry import NETS
 from ..registry import build_backbones, build_aggregator, build_heads, build_necks
 
 
 @NETS.register_module
-class Detector(nn.Module):
+class Detector(pl.LightningModule):
     def __init__(self, cfg):
         super(Detector, self).__init__()
         self.cfg = cfg

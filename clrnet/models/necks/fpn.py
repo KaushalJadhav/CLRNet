@@ -2,13 +2,14 @@ import warnings
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import pytorch_lightning as pl
 
 from mmcv.cnn import ConvModule
 from ..registry import NECKS
 
 
 @NECKS.register_module
-class FPN(nn.Module):
+class FPN(pl.LightningModule):
     def __init__(self,
                  in_channels,
                  out_channels,
