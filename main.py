@@ -3,11 +3,12 @@ import cv2
 import torch
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn
+import pytorch_lightning as pl
 import argparse
 import numpy as np
 import random
 from clrnet.utils.config import Config
-from clrnet.engine.runner import Runner
+from clrnet.engine.runner import CLRNet
 from clrnet.datasets import build_dataloader
 
 
@@ -32,15 +33,17 @@ def main():
     cfg.wandb_id = args.wandb_id
     
     cudnn.benchmark = True
-
-    runner = Runner(cfg)
+    model=CLRNet()
+    trainer=pl.Trainer()
 
     if args.validate:
-        runner.validate()
+        trainer.validate(model)
     elif args.test:
-        runner.test()
+        test_dataloader=CLRNet.test_dataloader
+        trainer.test(model,dataloaders=test_dataloader)
     else:
-        runner.train()
+
+        trainer.fit(model)
 
 
 def parse_args():

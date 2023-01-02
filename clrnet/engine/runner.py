@@ -1,6 +1,7 @@
 import time
 import cv2
 import torch
+import pytorch_lightning as pl
 from tqdm import tqdm
 import pytorch_warmup as warmup
 import numpy as np
@@ -20,8 +21,12 @@ import wandb
 from clrnet.utils.logging import init_wandb, wandb_log_train, wandb_log_val
 from clrnet.utils.recorder import SmoothedValue
 
-class Runner(object):
+
+
+
+class CLRNet(pl.LightningModule):
     def __init__(self, cfg):
+        super().__init__()
         torch.manual_seed(cfg.seed)
         np.random.seed(cfg.seed)
         random.seed(cfg.seed)
@@ -77,84 +82,76 @@ class Runner(object):
                 lr = self.optimizer.param_groups[0]['lr']
                 self.recorder.lr = lr
                 self.recorder.record('train')
+            
+            return loss
                 
         # Logging on W&B
         wandb_log_train(self.recorder.loss_stats['loss'].avg, self.recorder.lr, self.recorder.epoch)
-
-    def train(self):
-        self.recorder.logger.info('Build train loader...')
-        train_loader = build_dataloader(self.cfg.dataset.train,
+    
+    def train_dataloader(self):
+     return build_dataloader(self.cfg.dataset.train,
                                         self.cfg,
                                         is_train=True)
-        
-        self.recorder.logger.info('Start training...')
-        start_epoch = 0
-        if self.cfg.resume_from:
-            start_epoch = resume_network(self.cfg.resume_from, self.net,
-                                         self.optimizer, self.scheduler,
-                                         self.recorder)
-        
-        # Initializing W&B
-        init_wandb(self.cfg)
-        
-        for epoch in range(start_epoch, self.cfg.epochs):
-            self.recorder.epoch = epoch
-            self.train_epoch(epoch, train_loader)
-            if (epoch +
-                    1) % self.cfg.save_ep == 0 or epoch == self.cfg.epochs - 1:
+
+    def test_dataloader(self):
+     return build_dataloader(self.cfg.dataset.train,
+                                        self.cfg,
+                                        is_train=False)
+
+    def val_dataloader(self):
+     return build_dataloader(self.cfg.dataset.train,
+                                        self.cfg,
+                                        is_train=False)
+
+    def training_step(self,batch,batch_idx):
+    
+            self.recorder.epoch = batch_idx
+            loss=self.train_epoch(batch_idx, batch)
+            return loss
+
+    def training_epoch_end(self, training_step_outputs,batch_idx):
+        all_preds = torch.stack(training_step_outputs)
+        if (batch_idx +
+                    1) % self.cfg.save_ep == 0 or batch_idx == self.cfg.epochs - 1:
                 self.save_ckpt()
-            if (epoch +
-                    1) % self.cfg.eval_ep == 0 or epoch == self.cfg.epochs - 1:
-                self.validate()
-            if self.recorder.step >= self.cfg.total_iter:
-                break
-            if self.cfg.lr_update_by_epoch:
-                self.scheduler.step()
 
-
-    def test(self):
-        if not self.test_loader:
-            self.test_loader = build_dataloader(self.cfg.dataset.test,
-                                                self.cfg,
-                                                is_train=False)
-        self.net.eval()
+    def test_step(self,batch,batch_idx):
         predictions = []
-        for i, data in enumerate(tqdm(self.test_loader, desc=f'Testing')):
+        for i, data in enumerate(tqdm(batch, desc=f'Testing')):
             data = self.to_cuda(data)
             with torch.no_grad():
                 output = self.net(data)
                 output = self.net.module.heads.get_lanes(output)
                 predictions.extend(output)
             if self.cfg.view:
-                self.test_loader.dataset.view(output, data['meta'])
+                batch.dataset.view(output, data['meta'])
 
-        metric = self.test_loader.dataset.evaluate(predictions,
+        metric = batch.dataset.evaluate(predictions,
                                                    self.cfg.work_dir)
         if metric is not None:
             self.recorder.logger.info('metric: ' + str(metric))
+        
+        return metric
 
-    def validate(self):
-        if not self.val_loader:
-            self.val_loader = build_dataloader(self.cfg.dataset.val,
-                                               self.cfg,
-                                               is_train=False)
-        self.net.eval()
+    def validation_step(self,batch,batch_idx):
         predictions = []
-        for i, data in enumerate(tqdm(self.val_loader, desc=f'Validate')):
+        for i, data in enumerate(tqdm(batch, desc=f'Validate')):
             data = self.to_cuda(data)
             with torch.no_grad():
                 output = self.net(data)
                 output = self.net.module.heads.get_lanes(output)
                 predictions.extend(output)
             if self.cfg.view:
-                self.val_loader.dataset.view(output, data['meta'])
+                batch.dataset.view(output, data['meta'])
 
-        metric = self.val_loader.dataset.evaluate(predictions,
+        metric = batch.dataset.evaluate(predictions,
                                                   self.cfg.work_dir)
         self.recorder.logger.info('metric: ' + str(metric))
         
         # Logging on W&B
         wandb_log_val(metric, self.recorder.epoch)
+
+        return metric
         
 
     def save_ckpt(self, is_best=False):

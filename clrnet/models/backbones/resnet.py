@@ -2,6 +2,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from torch.hub import load_state_dict_from_url
+import pytorch_lightning as pl
 
 from clrnet.models.registry import BACKBONES
 
@@ -48,7 +49,7 @@ def conv1x1(in_planes, out_planes, stride=1):
                      bias=False)
 
 
-class BasicBlock(nn.Module):
+class BasicBlock(pl.LightningModule):
     expansion = 1
 
     def __init__(self,
@@ -97,7 +98,7 @@ class BasicBlock(nn.Module):
         return out
 
 
-class Bottleneck(nn.Module):
+class Bottleneck(pl.LightningModule):
     expansion = 4
 
     def __init__(self,
@@ -148,7 +149,7 @@ class Bottleneck(nn.Module):
 
 
 @BACKBONES.register_module
-class ResNetWrapper(nn.Module):
+class ResNetWrapper(pl.LightningModule):
     def __init__(self,
                  resnet='resnet18',
                  pretrained=True,
@@ -170,7 +171,8 @@ class ResNetWrapper(nn.Module):
         if out_conv:
             out_channel = 512
             for chan in reversed(self.in_channels):
-                if chan < 0: continue
+                if chan < 0:
+                    continue
                 out_channel = chan
                 break
             self.out = conv1x1(out_channel * self.model.expansion,
@@ -183,7 +185,7 @@ class ResNetWrapper(nn.Module):
         return x
 
 
-class ResNet(nn.Module):
+class ResNet(pl.LightningModule):
     def __init__(self,
                  block,
                  layers,

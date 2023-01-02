@@ -1,8 +1,9 @@
 import torch.nn as nn
 import torch.nn.functional as F
+import pytorch_lightning as pl
 
 
-class SegDecoder(nn.Module):
+class SegDecoder(pl.LightningModule):
     '''
     Optionaly seg decoder
     '''
