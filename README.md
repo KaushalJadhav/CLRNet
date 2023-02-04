@@ -10,15 +10,15 @@
 
 <div align="center">
 
-# CLRNet: Cross Layer Refinement Network for Lane Detection
+# [RE] CLRNet: Cross Layer Refinement Network for Lane Detection
 
 </div>
 
 
 
-Pytorch implementation of the paper "[CLRNet: Cross Layer Refinement Network for Lane Detection](https://arxiv.org/abs/2203.10350)" (CVPR2022 Acceptance).
+This repository is the PyTorch and PyTorch Lightning implementation of the paper ["CLRNet: Cross Layer Refinement Network for Lane Detection"](https://arxiv.org/abs/2203.10350). The paper aims to improve the efficacy of lane detection by utilizing existing techniques as a foundation.<br> Previous lane detection approaches have relied heavily on parameter-based techniques and pre-defined features, such as anchor points and segmentation maps. In contrast, the network introduced in this paper classifies features into two broad categories: high-level and low-level.<br>Using a novel loss function **Line IoU loss** improvements in the performance of the network is achieved.
 
-## Introduction
+## Model Architecture
 ![Arch](.github/arch.png)
 - CLRNet exploits more contextual information to detect lanes while leveraging local detailed lane features to improve localization accuracy. 
 - CLRNet achieves SOTA result on CULane, Tusimple, and LLAMAS datasets.
@@ -26,17 +26,17 @@ Pytorch implementation of the paper "[CLRNet: Cross Layer Refinement Network for
 ## Installation
 
 ### Prerequisites
-Only test on Ubuntu18.04 and 20.04 with:
-- Python >= 3.8 (tested with Python3.8)
-- PyTorch >= 1.6 (tested with Pytorch1.6)
-- CUDA (tested with cuda10.2)
+- Python >= 3.8 (tested with Python 3.8)
+- PyTorch >= 1.6 (tested with Pytorch 1.6)
+- WandB >= 0.13.9 (tested with WandB 0.13.9)
+- CUDA (tested with cuda11.4)
 - Other dependencies described in `requirements.txt`
 
 ### Clone this repository
 Clone this code to your workspace. 
 We call this directory as `$CLRNET_ROOT`
 ```Shell
-git clone https://github.com/Turoad/clrnet
+git clone https://github.com/KaushalJadhav/clrnet
 ```
 
 ### Create a conda virtual environment and activate it (conda is optional)
@@ -64,7 +64,7 @@ python setup.py build develop
 
 #### CULane
 
-Download [CULane](https://xingangpan.github.io/projects/CULane.html). Then extract them to `$CULANEROOT`. Create link to `data` directory.
+Download [CULane](https://www.kaggle.com/datasets/manideep1108/culane). Then extract them to `$CULANEROOT`. Create link to `data` directory.
 
 ```Shell
 cd $CLRNET_ROOT
@@ -81,7 +81,7 @@ $CULANEROOT/list                 # data lists
 
 
 #### Tusimple
-Download [Tusimple](https://github.com/TuSimple/tusimple-benchmark/issues/3). Then extract them to `$TUSIMPLEROOT`. Create link to `data` directory.
+Download [Tusimple](https://www.kaggle.com/datasets/manideep1108/tusimple). Then extract them to `$TUSIMPLEROOT`. Create link to `data` directory.
 
 ```Shell
 cd $CLRNET_ROOT
@@ -132,30 +132,41 @@ For training, run
 python main.py [configs/path_to_your_config] --gpus [gpu_num]
 ```
 
-For example, run
+For example, for DLA34 backbone and CULane dataset run
 ```Shell
-python main.py configs/clrnet/clr_resnet18_culane.py --gpus 0
+python main.py configs/clrnet/clr_dla34_culane.py --gpus 0
 ```
 
 ### Validation
-For testing, run
+For validtion, run
 ```Shell
-python main.py [configs/path_to_your_config] --[test|validate] --load_from [path_to_your_model] --gpus [gpu_num]
+python main.py [configs/path_to_your_config] --[validate] --load_from [path_to_your_model] --gpus [gpu_num]
 ```
 
-For example, run
+For example, for DLA34 backbone and CULane dataset run
 ```Shell
 python main.py configs/clrnet/clr_dla34_culane.py --validate --load_from culane_dla34.pth --gpus 0
+```
+
+### Testing
+For testing, run
+```Shell
+python main.py [configs/path_to_your_config] --[test] --load_from [path_to_your_model] --gpus [gpu_num]
+```
+
+For example, for DLA34 backbone and CULane dataset run
+```Shell
+python main.py configs/clrnet/clr_dla34_culane.py --test --load_from culane_dla34.pth --gpus 0
 ```
 
 Currently, this code can output the visualization result when testing, just add `--view`.
 We will get the visualization result in `work_dirs/xxx/xxx/visualization`.
 
+## Pre-trained Models
+
+- Pretrained models: [Link]()
 
 ## Results
-![F1 vs. Latency for SOTA methods on the lane detection](.github/latency_f1score.png)
-
-[assets]: https://github.com/turoad/CLRNet/releases
 
 ### CULane
 
@@ -176,28 +187,22 @@ We will get the visualization result in `work_dirs/xxx/xxx/visualization`.
 | [ResNet-101][assets]      |   97.62|   96.83  |   2.37   |  2.38  |
 
 
+This repository is maintained by [AGV.AI (IIT Kharagpur)](http://www.agv.iitkgp.ac.in/)
 
-### LLAMAS
-|   Backbone    |  <center>  valid <br><center> &nbsp; mF1 &nbsp; &nbsp;  &nbsp;F1@50 &nbsp; F1@75     | <center>  test <br> F1@50 |
-|  :---:  |    :---:    |        :---:|
-| [ResNet-18][assets] |  <center> 70.83  &nbsp; &nbsp; 96.93 &nbsp; &nbsp; 85.23 | 96.00 |
-| [DLA-34][assets]     |  <center> 71.57 &nbsp; &nbsp;  97.06  &nbsp; &nbsp; 85.43  |   96.12 |
+## Bibtex
 
-“F1@50” refers to the official metric, i.e., F1 score when IoU threshold is 0.5 between the gt and prediction. "F1@75" is the F1 score when IoU threshold is 0.75.
-
-## Citation
-
-If our paper and code are beneficial to your work, please consider citing:
-```
-@InProceedings{Zheng_2022_CVPR,
+- CLRNet: Cross Layer Refinement Network for Lane Detection
+    ```
+    @InProceedings{Zheng_2022_CVPR,
     author    = {Zheng, Tu and Huang, Yifei and Liu, Yang and Tang, Wenjian and Yang, Zheng and Cai, Deng and He, Xiaofei},
     title     = {CLRNet: Cross Layer Refinement Network for Lane Detection},
     booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
     month     = {June},
     year      = {2022},
     pages     = {898-907}
-}
-```
+    }
+    ```
+
 
 ## Acknowledgement
 <!--ts-->
