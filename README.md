@@ -164,7 +164,7 @@ We will get the visualization result in `work_dirs/xxx/xxx/visualization`.
 
 ## Pre-trained Models
 
-- Pretrained models: [Link]()
+- Pretrained models: [Link](https://drive.google.com/drive/folders/1Zoi2FeB-FdgAXr5owqYeETvVh0YCvKPm?usp=sharing)
 
 ## Results
 
@@ -186,8 +186,6 @@ We will get the visualization result in `work_dirs/xxx/xxx/visualization`.
 | [ResNet-34][assets]       |   97.82              |    96.87          |   2.27          |    2.08      | 
 | [ResNet-101][assets]      |   97.62|   96.83  |   2.37   |  2.38  |
 
-
-This repository is maintained by [AGV.AI (IIT Kharagpur)](http://www.agv.iitkgp.ac.in/)
 
 ## Bibtex
 
